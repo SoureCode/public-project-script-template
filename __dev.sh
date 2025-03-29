@@ -12,7 +12,7 @@ if [ -d "scripts/public-common" ]; then
     rm -rf "scripts/public-common"
 fi
 
-git clone --depth 1 --branch master "git@github.com:chapterjason/public-common-script-template.git" "scripts/public-common"
+git clone --depth 1 --branch master "git@github.com:SoureCode/public-common-script-template.git" "scripts/public-common"
 rm -rf "scripts/public-common/.git"
 
 popd >/dev/null 2>&1

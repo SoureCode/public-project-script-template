@@ -11,10 +11,10 @@ source "${PUBPST_CURRENT_DIRECTORY}/_functions.sh"
 pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
 
 # script-template dependencies
-_pubcst_git_update_template "master" "git@github.com:chapterjason/public-common-script-template.git" "scripts/public-common"
+_pubcst_git_update_template "master" "git@github.com:SoureCode/public-common-script-template.git" "scripts/public-common"
 
 # the actual script-template
-_pubcst_git_update_template "master" "git@github.com:chapterjason/public-project-script-template.git" "scripts/public-project"
+_pubcst_git_update_template "master" "git@github.com:SoureCode/public-project-script-template.git" "scripts/public-project"
 
 popd >/dev/null 2>&1
 #</editor-fold>
