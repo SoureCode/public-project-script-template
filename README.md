@@ -19,9 +19,9 @@ scripts/**/*.local.sh
 
 ```bash
 # script-template dependencies
-git clone --depth 1 -b "master" "git@github.com:chapterjason/public-common-script-template.git" "scripts/public-common"
+git clone --depth 1 -b "master" "git@github.com:SoureCode/public-common-script-template.git" "scripts/public-common"
 # the actual script-template
-git clone --depth 1 -b "master" "git@github.com:chapterjason/public-project-script-template.git" "scripts/public-project"
+git clone --depth 1 -b "master" "git@github.com:SoureCode/public-project-script-template.git" "scripts/public-project"
 ```
 
 ## Development
