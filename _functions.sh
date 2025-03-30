@@ -37,7 +37,7 @@ function _pubcst_console() {
             _PUBPST_CONSOLE_BINARY_CACHE="${PUBPST_PROJECT_DIRECTORY}/bin/console"
 
             if [ ! -f "$_PUBPST_CONSOLE_BINARY_CACHE" ]; then
-                echo "missing binary ${_PUBPST_CONSOLE_BINARY_CACHE}"
+                echo "missing binary ${_PUBPST_CONSOLE_BINARY_CACHE}" >&2
                 exit 1
             fi
 
@@ -52,40 +52,80 @@ function _pubcst_console() {
 #<editor-fold desc="database functions">
 function _pubpst_wait_for_database() {
     if _pubcst_composer_has_package "doctrine/doctrine-bundle"; then
-
         local ATTEMPTS_LEFT_TO_REACH_DATABASE=30
         local DATABASE_ERROR
         local EXIT_CODE
 
-        echo "Waiting for database to be ready..."
+        _pubpst_log --no-newline "Waiting for database to be ready"
 
         while [ $ATTEMPTS_LEFT_TO_REACH_DATABASE -gt 0 ]; do
-            DATABASE_ERROR="$(_pubcst_console dbal:run-sql -q "SELECT 1" 2>&1)"
-            EXIT_CODE=$?
-
-            if [ "${EXIT_CODE}" -eq 0 ]; then
-                echo "The database is now ready and reachable"
+            _pubcst_console dbal:run-sql -q "SELECT 1"
+            if DATABASE_ERROR="$(_pubcst_console dbal:run-sql -q "SELECT 1" 2>&1)"; then
+                _pubpst_log ""
+                _pubpst_log "The database is now ready and reachable"
                 return 0
-            elif [ "${EXIT_CODE}" -eq 255 ]; then
-                echo "Unrecoverable error encountered:"
-                echo "$DATABASE_ERROR"
-                exit 1
+            else
+                EXIT_CODE=$?
+
+                if [ "${EXIT_CODE}" -eq 255 ]; then
+                    _pubpst_log ""
+                    _pubpst_log "Unrecoverable error encountered:"
+                    _pubpst_log "$(_pubpst_log_indent "$DATABASE_ERROR")"
+                    exit 1
+                fi
             fi
 
             sleep 1
             ATTEMPTS_LEFT_TO_REACH_DATABASE=$((ATTEMPTS_LEFT_TO_REACH_DATABASE - 1))
-            echo "Still waiting for the database... $ATTEMPTS_LEFT_TO_REACH_DATABASE attempts left."
+            _pubpst_log --no-newline "."
+            _pubpst_log --log "$(_pubpst_log_indent "$DATABASE_ERROR")"
         done
 
-        echo "The database is not up or not reachable:"
-        echo "$DATABASE_ERROR"
+        _pubpst_log ""
+
+        _pubpst_log "The database is not up or not reachable:"
+        _pubpst_log "$(_pubpst_log_indent "$DATABASE_ERROR")"
         exit 1
     fi
 }
 #</editor-fold>
 
 #<editor-fold desc="log functions">
-function _pubpst_rotate_log_file() {
+_PUBPST_LATEST_LOG_ENTRY_TIMESTAMP=""
+function _pubpst_log_now() {
+    date +%s%N
+}
+function _pubpst_log_now_formatted() {
+    local NOW="${1:-}"
+    local TIMESTAMP
+
+    TIMESTAMP=${NOW:0:10}
+
+    date -d @"$TIMESTAMP" "+%Y-%m-%d %H:%M:%S"
+}
+function _pubpst_log_delta() {
+    local NOW="${1:-}"
+    local DELTA
+    local DELTA_SECONDS
+    local MINUTES
+    local SECONDS
+    local MILLISECONDS
+
+    if [ -z "$_PUBPST_LATEST_LOG_ENTRY_TIMESTAMP" ]; then
+        echo "+00:00.000"
+        return 0
+    fi
+
+    DELTA=$((NOW - _PUBPST_LATEST_LOG_ENTRY_TIMESTAMP))
+    DELTA_SECONDS=$((DELTA / 1000000000))
+    MILLISECONDS=$(((DELTA % 1000000000) / 1000000))
+
+    MINUTES=$((DELTA_SECONDS / 60))
+    SECONDS=$((DELTA_SECONDS % 60))
+
+    printf "+%02d:%02d.%03d\n" "$MINUTES" "$SECONDS" "$MILLISECONDS"
+}
+function _pubpst_log_file_rotate() {
     local MAX_LOG_SIZE=1048576 # 1MB
     local MAX_LOG_FILES=5
     local LOG_FILE_SIZE
@@ -106,12 +146,13 @@ function _pubpst_rotate_log_file() {
     fi
 }
 
+_PUBPST_WAS_LAST_LOG_ENTRY_NEWLINE=true
 function _pubpst_log() {
-    local NO_NEWLINE=false
+    local NEWLINE=true
     local LOG_ONLY=false
 
     if [[ "${1:-}" == "--no-newline" ]]; then
-        NO_NEWLINE=true
+        NEWLINE=false
         shift
     fi
 
@@ -120,12 +161,44 @@ function _pubpst_log() {
         shift
     fi
 
-    local MESSAGE="${1}"
+    local MESSAGE
+    local SHOULD_ADD_TIMESTAMP=true
 
-    ARGS=()
+    MESSAGE="${1}"
 
-    if [ "$NO_NEWLINE" = true ]; then
+    if [[ ("$NEWLINE" = true && "$_PUBPST_WAS_LAST_LOG_ENTRY_NEWLINE" = false) || ("$NEWLINE" = false && "$_PUBPST_WAS_LAST_LOG_ENTRY_NEWLINE" = false) ]]; then
+        SHOULD_ADD_TIMESTAMP=false
+    fi
+
+    #echo "<-$NEWLINE-$PUBPST_WAS_LAST_LOG_ENTRY_NEWLINE->" >&2
+
+    if [ "$SHOULD_ADD_TIMESTAMP" = true ]; then
+        local NOW
+        local NOW_FORMATTED
+        local NOW_DELTA
+        local TIMESTAMP_PREFIX
+
+        NOW="$(_pubpst_log_now)"
+        NOW_FORMATTED="$(_pubpst_log_now_formatted "$NOW")"
+        NOW_DELTA="$(_pubpst_log_delta "$NOW")"
+        TIMESTAMP_PREFIX="[${NOW_FORMATTED}][${NOW_DELTA}] "
+
+        _PUBPST_LATEST_LOG_ENTRY_TIMESTAMP="$NOW"
+
+        MESSAGE="$(_pubpst_log_prefix "${MESSAGE}" "$TIMESTAMP_PREFIX")"
+    fi
+
+    local ARGS=()
+
+    if [ "$NEWLINE" = false ]; then
         ARGS+=("-n")
+        if [ "$LOG_ONLY" = false ]; then
+            _PUBPST_WAS_LAST_LOG_ENTRY_NEWLINE=false
+        fi
+    else
+        if [ "$LOG_ONLY" = false ]; then
+            _PUBPST_WAS_LAST_LOG_ENTRY_NEWLINE=true
+        fi
     fi
 
     if [ "$LOG_ONLY" = true ]; then
@@ -134,19 +207,24 @@ function _pubpst_log() {
         echo "${ARGS[@]}" "${MESSAGE}" | tee -a "${PUBPST_LOG_FILE}"
     fi
 
-    _pubpst_rotate_log_file
+    _pubpst_log_file_rotate
 }
 function _pubpst_log_indent() {
     local MESSAGE="${1}"
-    local PREFIX="${2:-}"
-    local INDENT_WIDTH="${3:-4}"
+    local INDENT_WIDTH="${2:-2}"
     local SPACES
-    local LINE
 
     SPACES=$(printf "%*s" "$INDENT_WIDTH" "")
 
+    _pubpst_log_prefix "$MESSAGE" " > $SPACES"
+}
+function _pubpst_log_prefix() {
+    local MESSAGE="${1}"
+    local PREFIX="${2}"
+    local LINE
+
     while IFS= read -r LINE; do
-        echo "${PREFIX} > ${SPACES}${LINE}"
+        echo "${PREFIX}${LINE}"
     done <<<"$MESSAGE"
 }
 #</editor-fold>
@@ -156,19 +234,28 @@ function _pubpst_execute() {
     local NAME="${1}"
     shift
 
-    local NOW
+    local PRINT_OUTPUT=false
+
+    if [[ "${1:-}" == "--print-output" ]]; then
+        PRINT_OUTPUT=true
+        shift
+    fi
+
     local RESULT
 
-    NOW="$(date +'%Y-%m-%d %H:%M:%S')"
-
-    _pubpst_log --no-newline "[${NOW}] Executing ${NAME}"
+    _pubpst_log --no-newline "Executing ${NAME}"
 
     if RESULT="$("$@" 2>&1)"; then
         _pubpst_log " [OK]"
-        _pubpst_log --log "$(_pubpst_log_indent "$RESULT" "[${NOW}]")"
+
+        if "$PRINT_OUTPUT"; then
+            _pubpst_log "$(_pubpst_log_indent "$RESULT")"
+        else
+            _pubpst_log --log "$(_pubpst_log_indent "$RESULT")"
+        fi
     else
         _pubpst_log " [ERROR]"
-        _pubpst_log "$(_pubpst_log_indent "$RESULT" "[${NOW}]")"
+        _pubpst_log "$(_pubpst_log_indent "$RESULT")"
         exit 1
     fi
 }
@@ -229,7 +316,7 @@ function _pubpst_symfony_schema_update() {
     local OPTION_NO_SCHEMA_UPDATE="${1:-false}"
 
     if _pubcst_composer_has_package "doctrine/doctrine-bundle" && ! "$OPTION_NO_SCHEMA_UPDATE"; then
-        _pubpst_execute "schema dump" _pubcst_console doctrine:schema:update --dump-sql --no-interaction --env="$APP_ENV"
+        _pubpst_execute "schema dump" --print-output _pubcst_console doctrine:schema:update --dump-sql --no-interaction --env="$APP_ENV"
         _pubpst_execute "schema update" _pubcst_console doctrine:schema:update --force --no-interaction --env="$APP_ENV"
     fi
 }
