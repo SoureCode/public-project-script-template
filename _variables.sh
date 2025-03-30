@@ -13,6 +13,9 @@ set -euo pipefail
 PUBPST_CURRENT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 PUBPST_PROJECT_DIRECTORY="$(dirname "$(dirname "${PUBPST_CURRENT_DIRECTORY}")")"
 PUBPST_SCRIPT_DIRECTORY="${PUBPST_PROJECT_DIRECTORY}/scripts"
+PUBPST_VAR_DIRECTORY="${PUBPST_PROJECT_DIRECTORY}/var"
+PUBPST_LOG_DIRECTORY="${PUBPST_VAR_DIRECTORY}/log"
+PUBPST_LOG_FILE="${PUBPST_LOG_DIRECTORY}/scripts.log"
 
 if [ -f "${PUBPST_SCRIPT_DIRECTORY}/public-common/_variables.sh" ]; then
     # this is the case for installation in a project
@@ -47,4 +50,9 @@ fi
 
 if [ -f "${PUBCST_PROJECT_DIRECTORY}/.env.${APP_ENV}.local" ]; then
     source "${PUBCST_PROJECT_DIRECTORY}/.env.${APP_ENV}.local"
+fi
+
+# ensure the log directory exists
+if [ ! -f "${PUBPST_LOG_DIRECTORY}" ]; then
+    mkdir -p "${PUBPST_LOG_DIRECTORY}"
 fi

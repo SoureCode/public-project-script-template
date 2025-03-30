@@ -48,19 +48,24 @@ done
 #</editor-fold>
 
 #<editor-fold desc="main">
-pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
+function _main() {
+    pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
 
-"${PUBPST_CURRENT_DIRECTORY}/stop.sh"
+    "${PUBPST_CURRENT_DIRECTORY}/stop.sh"
 
-ARGS=()
-if [ "$OPTION_NO_SCHEMA_UPDATE" = true ]; then
-    ARGS+=("--no-schema-update")
-fi
-if [ "$OPTION_NO_FIXTURES" = true ]; then
-    ARGS+=("--no-fixtures")
-fi
+    local ARGS=()
 
-"${PUBPST_CURRENT_DIRECTORY}/start.sh" "${ARGS[@]}"
+    if [ "$OPTION_NO_SCHEMA_UPDATE" = true ]; then
+        ARGS+=("--no-schema-update")
+    fi
+    if [ "$OPTION_NO_FIXTURES" = true ]; then
+        ARGS+=("--no-fixtures")
+    fi
 
-popd >/dev/null 2>&1
+    "${PUBPST_CURRENT_DIRECTORY}/start.sh" "${ARGS[@]}"
+
+    popd >/dev/null 2>&1
+}
 #</editor-fold>
+
+_main

@@ -36,24 +36,17 @@ while [ $# -gt 0 ]; do
 done
 #</editor-fold>
 
-#<editor-fold desc="main">
-pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
+function _main() {
+    pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
 
-_pubcst_print_context
+    _pubcst_print_context
 
-if _pubcst_composer_has_package "symfony/messenger"; then
-    _pubcst_console messenger:stop-workers --no-interaction --env="$APP_ENV"
-fi
+    _pubpst_symfony_worker_stop
+    _pubpst_sourecode_screen_stop
+    _pubpst_docker_compose_down
+    _pubpst_symfony_server_stop
 
-if _pubcst_composer_has_package "sourecode/screen-bundle"; then
-    _pubcst_console screen:stop --no-interaction --env="$APP_ENV"
-fi
+    popd >/dev/null 2>&1
+}
 
-if [ -f compose.yaml ] || [ -f docker-compose.yaml ] || [ -f docker-compose.yml ] || [ -f compose.yml ]; then
-    _pubcst_docker compose down --remove-orphans
-fi
-
-_pubcst_symfony server:stop
-
-popd >/dev/null 2>&1
-#</editor-fold>
+_main

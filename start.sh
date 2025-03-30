@@ -47,57 +47,31 @@ while [ $# -gt 0 ]; do
 done
 #</editor-fold>
 
-#<editor-fold desc="main">
-pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
+function _main() {
+    pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
 
-_pubcst_print_context
+    _pubcst_print_context
 
-if [ -f compose.yaml ] || [ -f docker-compose.yaml ] || [ -f docker-compose.yml ] || [ -f compose.yml ]; then
-    _pubcst_docker compose up --detach --remove-orphans
-fi
+    _pubpst_docker_compose_up
+    _pubpst_composer_install
 
-if _pubcst_is_prod; then
-    _pubcst_composer install --no-interaction --no-dev --optimize-autoloader
-else
-    _pubcst_composer install --no-interaction
-fi
+    _pubpst_symfony_cache_clear
+    _pubpst_symfony_assets_install
 
-if _pubcst_composer_has_package "symfony/framework-bundle"; then
-    _pubcst_console cache:clear --no-interaction --no-warmup --env="$APP_ENV"
-    _pubcst_console cache:warmup --no-interaction --env="$APP_ENV"
-    _pubcst_console assets:install --no-interaction --env="$APP_ENV"
-fi
+    _pubpst_symfony_import_map_install
 
-if _pubcst_composer_has_package "symfony/asset-mapper"; then
-    _pubcst_console importmap:install --no-interaction --env="$APP_ENV"
-
-    if _pubcst_is_prod; then
-        _pubcst_console asset-map:compile --no-interaction --env="$APP_ENV"
-    fi
-fi
-
-if _pubcst_composer_has_package "doctrine/doctrine-bundle"; then
     _pubpst_wait_for_database
-fi
 
-if _pubcst_composer_has_package "doctrine/doctrine-migrations-bundle"; then
-    _pubcst_console doctrine:migrations:migrate --no-interaction --allow-no-migration --all-or-nothing --env="$APP_ENV"
-fi
+    _pubpst_symfony_migrations_migrate
 
-if _pubcst_composer_has_package "doctrine/doctrine-bundle" && ! "$OPTION_NO_SCHEMA_UPDATE"; then
-    _pubcst_console doctrine:schema:update --dump-sql --no-interaction --env="$APP_ENV"
-    _pubcst_console doctrine:schema:update --force --no-interaction --env="$APP_ENV"
-fi
+    _pubpst_symfony_schema_update "$OPTION_NO_SCHEMA_UPDATE"
+    _pubpst_symfony_fixtures_load "$OPTION_NO_FIXTURES"
 
-if _pubcst_composer_has_package "doctrine/doctrine-fixtures-bundle" && ! "$OPTION_NO_FIXTURES"; then
-    _pubcst_console doctrine:fixtures:load --no-interaction --env="$APP_ENV"
-fi
+    _pubpst_sourecode_screen_start
 
-if _pubcst_composer_has_package "sourecode/screen-bundle"; then
-    _pubcst_console screen:start --no-interaction --env="$APP_ENV"
-fi
+    _pubpst_symfony_server_start
 
-_pubcst_symfony serve --daemon
+    popd >/dev/null 2>&1
+}
 
-popd >/dev/null 2>&1
-#</editor-fold>
+_main

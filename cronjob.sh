@@ -47,18 +47,17 @@ while [ $# -gt 0 ]; do
 done
 #</editor-fold>
 
-#<editor-fold desc="main">
-pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
+function _main() {
+    pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
 
-_pubcst_print_context
+    _pubcst_print_context
 
-while true; do
-    if _pubcst_composer_has_package "sourecode/screen-bundle"; then
-        _pubcst_console screen:start --no-interaction --env="$APP_ENV"
-    fi
+    while true; do
+        _pubpst_sourecode_screen_start
+        sleep "${INTERVAL}"
+    done
 
-    sleep "${INTERVAL}"
-done
+    popd >/dev/null 2>&1
+}
 
-popd >/dev/null 2>&1
-#</editor-fold>
+_main

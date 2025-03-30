@@ -47,52 +47,28 @@ while [ $# -gt 0 ]; do
 done
 #</editor-fold>
 
-#<editor-fold desc="main">
-pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
+function _main() {
+    pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
 
-_pubcst_print_context
+    _pubcst_print_context
 
-if _pubcst_composer_has_package "symfony/messenger"; then
-    _pubcst_console messenger:stop-workers --no-interaction --env="$APP_ENV"
-fi
+    _pubpst_symfony_worker_stop
+    _pubpst_sourecode_screen_stop
 
-if _pubcst_composer_has_package "sourecode/screen-bundle"; then
-    _pubcst_console screen:stop --no-interaction --env="$APP_ENV"
-fi
+    _pubpst_symfony_database_drop
 
-if _pubcst_composer_has_package "doctrine/doctrine-bundle"; then
-    _pubpst_wait_for_database
+    _pubpst_symfony_cache_clear
+    _pubpst_symfony_assets_install
 
-    _pubcst_console doctrine:database:drop --no-interaction --if-exists --force --env="$APP_ENV"
-    _pubcst_console doctrine:database:create --no-interaction --if-not-exists --env="$APP_ENV"
-fi
+    _pubpst_symfony_import_map_install
 
-if _pubcst_composer_has_package "symfony/framework-bundle"; then
-    _pubcst_console cache:clear --no-interaction --no-warmup --env="$APP_ENV"
-    _pubcst_console cache:warmup --no-interaction --env="$APP_ENV"
-    _pubcst_console assets:install --no-interaction --env="$APP_ENV"
-fi
+    _pubpst_symfony_migrations_migrate
+    _pubpst_symfony_schema_update "$OPTION_NO_SCHEMA_UPDATE"
+    _pubpst_symfony_fixtures_load "$OPTION_NO_FIXTURES"
 
-if _pubcst_composer_has_package "symfony/asset-mapper"; then
-    _pubcst_console importmap:install --no-interaction --env="$APP_ENV"
-fi
+    _pubpst_sourecode_screen_start
 
-if _pubcst_composer_has_package "doctrine/doctrine-migrations-bundle"; then
-    _pubcst_console doctrine:migrations:migrate --no-interaction --allow-no-migration --all-or-nothing --env="$APP_ENV"
-fi
+    popd >/dev/null 2>&1
+}
 
-if _pubcst_composer_has_package "doctrine/doctrine-bundle" && ! "$OPTION_NO_SCHEMA_UPDATE"; then
-    _pubcst_console doctrine:schema:update --dump-sql --no-interaction --env="$APP_ENV"
-    _pubcst_console doctrine:schema:update --force --no-interaction --env="$APP_ENV"
-fi
-
-if _pubcst_composer_has_package "doctrine/doctrine-fixtures-bundle" && ! "$OPTION_NO_FIXTURES"; then
-    _pubcst_console doctrine:fixtures:load --no-interaction --env="$APP_ENV"
-fi
-
-if _pubcst_composer_has_package "sourecode/screen-bundle"; then
-    _pubcst_console screen:start --no-interaction --env="$APP_ENV"
-fi
-
-popd >/dev/null 2>&1
-#</editor-fold>
+_main
