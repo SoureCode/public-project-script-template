@@ -58,7 +58,7 @@ function _pubpst_wait_for_database() {
     echo "Waiting for database to be ready..."
 
     while [ $ATTEMPTS_LEFT_TO_REACH_DATABASE -gt 0 ]; do
-        DATABASE_ERROR="$(_console dbal:run-sql -q "SELECT 1" 2>&1)"
+        DATABASE_ERROR="$(_pubcst_console dbal:run-sql -q "SELECT 1" 2>&1)"
         EXIT_CODE=$?
 
         if [ "${EXIT_CODE}" -eq 0 ]; then
