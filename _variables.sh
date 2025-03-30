@@ -1,4 +1,28 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bashAPP_ENV="${APP_ENV:-dev}"
+
+# load env in this order:
+# .env
+# .env.local
+# .env.<APP_ENV>
+# .env.<APP_ENV>.local
+# .env.local.php
+
+if [ -f "${PUBCST_PROJECT_DIRECTORY}/.env" ]; then
+    source "${PUBCST_PROJECT_DIRECTORY}/.env"
+fi
+
+if [ -f "${PUBCST_PROJECT_DIRECTORY}/.env.local" ]; then
+    source "${PUBCST_PROJECT_DIRECTORY}/.env.local"
+fi
+
+if [ -f "${PUBCST_PROJECT_DIRECTORY}/.env.${APP_ENV}" ]; then
+    source "${PUBCST_PROJECT_DIRECTORY}/.env.${APP_ENV}"
+fi
+
+if [ -f "${PUBCST_PROJECT_DIRECTORY}/.env.${APP_ENV}.local" ]; then
+    source "${PUBCST_PROJECT_DIRECTORY}/.env.${APP_ENV}.local"
+fi
+
 ###############################################################################
 # DO NOT MODIFY THIS FILE
 #

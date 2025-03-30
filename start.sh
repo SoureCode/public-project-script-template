@@ -52,19 +52,14 @@ pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
 
 _pubcst_print_context
 
-if _pubcst_composer_has_package "symfony/messenger"; then
-    _pubcst_console messenger:stop-workers --no-interaction --env="$APP_ENV"
+if [ -f compose.yaml ] || [ -f docker-compose.yaml ] || [ -f docker-compose.yml ] || [ -f compose.yml ]; then
+    _pubcst_docker compose up --detach --remove-orphans
 fi
 
-if _pubcst_composer_has_package "sourecode/screen-bundle"; then
-    _pubcst_console screen:stop --no-interaction --env="$APP_ENV"
-fi
-
-if _pubcst_composer_has_package "doctrine/doctrine-bundle"; then
-    _pubpst_wait_for_database
-
-    _pubcst_console doctrine:database:drop --no-interaction --if-exists --force --env="$APP_ENV"
-    _pubcst_console doctrine:database:create --no-interaction --if-not-exists --env="$APP_ENV"
+if _pubcst_is_prod; then
+    _pubcst_composer install --no-interaction --no-dev --optimize-autoloader
+else
+    _pubcst_composer install --no-interaction
 fi
 
 if _pubcst_composer_has_package "symfony/framework-bundle"; then
@@ -75,6 +70,14 @@ fi
 
 if _pubcst_composer_has_package "symfony/asset-mapper"; then
     _pubcst_console importmap:install --no-interaction --env="$APP_ENV"
+
+    if _pubcst_is_prod; then
+        _pubcst_console asset-map:compile --no-interaction --env="$APP_ENV"
+    fi
+fi
+
+if _pubcst_composer_has_package "doctrine/doctrine-bundle"; then
+    _pubpst_wait_for_database
 fi
 
 if _pubcst_composer_has_package "doctrine/doctrine-migrations-bundle"; then
@@ -93,6 +96,8 @@ fi
 if _pubcst_composer_has_package "sourecode/screen-bundle"; then
     _pubcst_console screen:start --no-interaction --env="$APP_ENV"
 fi
+
+_pubcst_symfony serve --daemon
 
 popd >/dev/null 2>&1
 #</editor-fold>
