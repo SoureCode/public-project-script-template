@@ -85,6 +85,27 @@ function _pubpst_wait_for_database() {
 #</editor-fold>
 
 #<editor-fold desc="log functions">
+function _pubpst_rotate_log_file() {
+    local MAX_LOG_SIZE=1048576 # 1MB
+    local MAX_LOG_FILES=5
+    local LOG_FILE_SIZE
+
+    LOG_FILE_SIZE=$(stat -c%s "$PUBPST_LOG_FILE" 2>/dev/null) || return 1
+
+    if [ "$LOG_FILE_SIZE" -ge "$MAX_LOG_SIZE" ]; then
+        local INDEX
+
+        for ((INDEX = MAX_LOG_FILES - 1; INDEX >= 1; INDEX--)); do
+            if [ -f "${PUBPST_LOG_FILE}.${INDEX}" ]; then
+                mv "${PUBPST_LOG_FILE}.${INDEX}" "${PUBPST_LOG_FILE}.$((INDEX + 1))"
+            fi
+        done
+
+        mv "$PUBPST_LOG_FILE" "${PUBPST_LOG_FILE}.1"
+        touch "$PUBPST_LOG_FILE"
+    fi
+}
+
 function _pubpst_log() {
     local NO_NEWLINE=false
     local LOG_ONLY=false
@@ -112,17 +133,20 @@ function _pubpst_log() {
     else
         echo "${ARGS[@]}" "${MESSAGE}" | tee -a "${PUBPST_LOG_FILE}"
     fi
+
+    _pubpst_rotate_log_file
 }
 function _pubpst_log_indent() {
     local MESSAGE="${1}"
-    local INDENT_WIDTH="${2:-4}"
+    local PREFIX="${2:-}"
+    local INDENT_WIDTH="${3:-4}"
     local SPACES
     local LINE
 
     SPACES=$(printf "%*s" "$INDENT_WIDTH" "")
 
     while IFS= read -r LINE; do
-        echo " > ${SPACES}${LINE}"
+        echo "${PREFIX} > ${SPACES}${LINE}"
     done <<<"$MESSAGE"
 }
 #</editor-fold>
@@ -132,16 +156,19 @@ function _pubpst_execute() {
     local NAME="${1}"
     shift
 
+    local NOW
     local RESULT
 
-    _pubpst_log --no-newline "Executing ${NAME}"
+    NOW="$(date +'%Y-%m-%d %H:%M:%S')"
+
+    _pubpst_log --no-newline "[${NOW}] Executing ${NAME}"
 
     if RESULT="$("$@" 2>&1)"; then
         _pubpst_log " [OK]"
-        _pubpst_log --log "$(_pubpst_log_indent "$RESULT")"
+        _pubpst_log --log "$(_pubpst_log_indent "$RESULT" "[${NOW}]")"
     else
         _pubpst_log " [ERROR]"
-        _pubpst_log "$(_pubpst_log_indent "$RESULT")"
+        _pubpst_log "$(_pubpst_log_indent "$RESULT" "[${NOW}]")"
         exit 1
     fi
 }
@@ -151,7 +178,7 @@ function _pubpst_docker_compose_up() {
     fi
 }
 
-function _pubpst_docker_compose_down(){
+function _pubpst_docker_compose_down() {
     if [ -f compose.yaml ] || [ -f docker-compose.yaml ] || [ -f docker-compose.yml ] || [ -f compose.yml ]; then
         _pubpst_execute "compose down" _pubcst_docker compose down --remove-orphans
     fi
@@ -161,8 +188,6 @@ function _pubpst_composer_install() {
     local ARGS=()
 
     ARGS+=("--no-interaction")
-
-    _pubpst_log --no-newline "Executing composer install"
 
     if _pubcst_is_prod; then
         ARGS+=("--no-dev" "--optimize-autoloader")
@@ -243,7 +268,7 @@ function _pubpst_symfony_server_stop() {
     _pubpst_execute "server stop" _pubcst_symfony server:stop
 }
 
-function _pubpst_symfony_database_drop(){
+function _pubpst_symfony_database_drop() {
     if _pubcst_composer_has_package "doctrine/doctrine-bundle"; then
         _pubpst_wait_for_database
 

@@ -51,24 +51,16 @@ function _main() {
     pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
 
     _pubcst_print_context
-
     _pubpst_docker_compose_up
     _pubpst_composer_install
-
     _pubpst_symfony_cache_clear
     _pubpst_symfony_assets_install
-
     _pubpst_symfony_import_map_install
-
     _pubpst_wait_for_database
-
     _pubpst_symfony_migrations_migrate
-
     _pubpst_symfony_schema_update "$OPTION_NO_SCHEMA_UPDATE"
     _pubpst_symfony_fixtures_load "$OPTION_NO_FIXTURES"
-
     _pubpst_sourecode_screen_start
-
     _pubpst_symfony_server_start
 
     popd >/dev/null 2>&1

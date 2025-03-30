@@ -7,7 +7,7 @@ PUBPST_CURRENT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 
 source "${PUBPST_CURRENT_DIRECTORY}/_variables.sh"
 source "${PUBPST_CURRENT_DIRECTORY}/_functions.sh"
 
-function _main(){
+function _main() {
     pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
 
     # script-template dependencies
