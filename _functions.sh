@@ -332,7 +332,7 @@ function _pubpst_symfony_schema_update() {
 function _pubpst_symfony_fixtures_load() {
     local OPTION_NO_FIXTURES="${1:-false}"
 
-    if _pubcst_composer_has_package "doctrine/doctrine-fixtures-bundle"; then
+    if _pubcst_composer_has_dev_package "doctrine/doctrine-fixtures-bundle"; then
         if ! "$OPTION_NO_FIXTURES"; then
             _pubpst_execute "fixtures load" _pubcst_console doctrine:fixtures:load --no-interaction --env="$APP_ENV"
         else
