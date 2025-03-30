@@ -277,7 +277,7 @@ function _pubpst_composer_install() {
     ARGS+=("--no-interaction")
 
     if _pubcst_is_prod; then
-        ARGS+=("--no-dev" "--optimize-autoloader")
+        ARGS+=("--no-dev" "--optimize-autoloader" "--no-scripts")
     fi
 
     _pubpst_execute "composer install" _pubcst_composer install "${ARGS[@]}"
