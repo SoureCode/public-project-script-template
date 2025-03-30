@@ -315,17 +315,30 @@ function _pubpst_symfony_migrations_migrate() {
 function _pubpst_symfony_schema_update() {
     local OPTION_NO_SCHEMA_UPDATE="${1:-false}"
 
-    if _pubcst_composer_has_package "doctrine/doctrine-bundle" && ! "$OPTION_NO_SCHEMA_UPDATE"; then
-        _pubpst_execute "schema dump" --print-output _pubcst_console doctrine:schema:update --dump-sql --no-interaction --env="$APP_ENV"
-        _pubpst_execute "schema update" _pubcst_console doctrine:schema:update --force --no-interaction --env="$APP_ENV"
+    if _pubcst_composer_has_package "doctrine/doctrine-bundle"; then
+        if ! "$OPTION_NO_SCHEMA_UPDATE"; then
+            _pubpst_execute "schema dump" --print-output _pubcst_console doctrine:schema:update --dump-sql --no-interaction --env="$APP_ENV"
+            _pubpst_execute "schema update" _pubcst_console doctrine:schema:update --force --no-interaction --env="$APP_ENV"
+        else
+            _pubpst_log --no-newline "Executing schema dump"
+            _pubpst_log " [SKIP]"
+
+            _pubpst_log --no-newline "Executing schema update"
+            _pubpst_log " [SKIP]"
+        fi
     fi
 }
 
 function _pubpst_symfony_fixtures_load() {
     local OPTION_NO_FIXTURES="${1:-false}"
 
-    if _pubcst_composer_has_package "doctrine/doctrine-fixtures-bundle" && ! "$OPTION_NO_FIXTURES"; then
-        _pubpst_execute "fixtures load" _pubcst_console doctrine:fixtures:load --no-interaction --env="$APP_ENV"
+    if _pubcst_composer_has_package "doctrine/doctrine-fixtures-bundle"; then
+        if ! "$OPTION_NO_FIXTURES"; then
+            _pubpst_execute "fixtures load" _pubcst_console doctrine:fixtures:load --no-interaction --env="$APP_ENV"
+        else
+            _pubpst_log --no-newline "Executing fixtures load"
+            _pubpst_log " [SKIP]"
+        fi
     fi
 }
 
