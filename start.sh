@@ -53,6 +53,7 @@ function _main() {
     _pubcst_print_context
 
     _pubpst_composer_install
+    _pubpst_check_requirements
 
     _pubpst_docker_compose_up
     _pubpst_wait_for_database

@@ -44,6 +44,7 @@ function _main() {
     _pubcst_print_context
 
     _pubpst_composer_install
+    _pubpst_check_requirements
     _pubpst_dump_env
 
     # stop
