@@ -285,30 +285,30 @@ function _pubpst_composer_install() {
 
 function _pubpst_symfony_cache_clear() {
     if _pubcst_composer_has_package "symfony/framework-bundle"; then
-        _pubpst_execute "cache clear" _pubcst_console cache:clear --no-interaction --no-warmup --env="$APP_ENV"
-        _pubpst_execute "cache warmup" _pubcst_console cache:warmup --no-interaction --env="$APP_ENV"
+        _pubpst_execute "cache clear" _pubcst_console cache:clear --no-interaction --no-warmup --env="${APP_ENV}"
+        _pubpst_execute "cache warmup" _pubcst_console cache:warmup --no-interaction --env="${APP_ENV}"
     fi
 }
 
 function _pubpst_symfony_assets_install() {
     if _pubcst_composer_has_package "symfony/framework-bundle"; then
-        _pubpst_execute "assets install" _pubcst_console assets:install --no-interaction --env="$APP_ENV"
+        _pubpst_execute "assets install" _pubcst_console assets:install --no-interaction --env="${APP_ENV}"
     fi
 }
 
 function _pubpst_symfony_import_map_install() {
     if _pubcst_composer_has_package "symfony/asset-mapper"; then
-        _pubpst_execute "import-map install" _pubcst_console importmap:install --no-interaction --env="$APP_ENV"
+        _pubpst_execute "import-map install" _pubcst_console importmap:install --no-interaction --env="${APP_ENV}"
 
         if _pubcst_is_prod; then
-            _pubpst_execute "asset-map compile" _pubcst_console asset-map:compile --no-interaction --env="$APP_ENV"
+            _pubpst_execute "asset-map compile" _pubcst_console asset-map:compile --no-interaction --env="${APP_ENV}"
         fi
     fi
 }
 
 function _pubpst_symfony_migrations_migrate() {
     if _pubcst_composer_has_package "doctrine/doctrine-migrations-bundle"; then
-        _pubpst_execute "migrations migrate" _pubcst_console doctrine:migrations:migrate --no-interaction --allow-no-migration --all-or-nothing --env="$APP_ENV"
+        _pubpst_execute "migrations migrate" _pubcst_console doctrine:migrations:migrate --no-interaction --allow-no-migration --all-or-nothing --env="${APP_ENV}"
     fi
 }
 
@@ -317,8 +317,8 @@ function _pubpst_symfony_schema_update() {
 
     if _pubcst_composer_has_package "doctrine/doctrine-bundle"; then
         if ! "$OPTION_NO_SCHEMA_UPDATE"; then
-            _pubpst_execute "schema dump" --print-output _pubcst_console doctrine:schema:update --dump-sql --no-interaction --env="$APP_ENV"
-            _pubpst_execute "schema update" _pubcst_console doctrine:schema:update --force --no-interaction --env="$APP_ENV"
+            _pubpst_execute "schema dump" --print-output _pubcst_console doctrine:schema:update --dump-sql --no-interaction --env="${APP_ENV}"
+            _pubpst_execute "schema update" _pubcst_console doctrine:schema:update --force --no-interaction --env="${APP_ENV}"
         else
             _pubpst_log --no-newline "Executing schema dump"
             _pubpst_log " [SKIP]"
@@ -334,7 +334,7 @@ function _pubpst_symfony_fixtures_load() {
 
     if _pubcst_composer_has_dev_package "doctrine/doctrine-fixtures-bundle"; then
         if ! "$OPTION_NO_FIXTURES"; then
-            _pubpst_execute "fixtures load" _pubcst_console doctrine:fixtures:load --no-interaction --env="$APP_ENV"
+            _pubpst_execute "fixtures load" _pubcst_console doctrine:fixtures:load --no-interaction --env="${APP_ENV}"
         else
             _pubpst_log --no-newline "Executing fixtures load"
             _pubpst_log " [SKIP]"
@@ -344,19 +344,19 @@ function _pubpst_symfony_fixtures_load() {
 
 function _pubpst_sourecode_screen_start() {
     if _pubcst_composer_has_package "sourecode/screen-bundle"; then
-        _pubpst_execute "screen start" _pubcst_console screen:start --no-interaction --env="$APP_ENV"
+        _pubpst_execute "screen start" _pubcst_console screen:start --no-interaction --env="${APP_ENV}"
     fi
 }
 
 function _pubpst_sourecode_screen_stop() {
     if _pubcst_composer_has_package "sourecode/screen-bundle"; then
-        _pubpst_execute "screen stop" _pubcst_console screen:stop --no-interaction --env="$APP_ENV"
+        _pubpst_execute "screen stop" _pubcst_console screen:stop --no-interaction --env="${APP_ENV}"
     fi
 }
 
 function _pubpst_symfony_worker_stop() {
     if _pubcst_composer_has_package "symfony/messenger"; then
-        _pubpst_execute "worker stop" _pubcst_console messenger:stop-workers --no-interaction --env="$APP_ENV"
+        _pubpst_execute "worker stop" _pubcst_console messenger:stop-workers --no-interaction --env="${APP_ENV}"
     fi
 }
 
@@ -372,8 +372,8 @@ function _pubpst_symfony_database_drop() {
     if _pubcst_composer_has_package "doctrine/doctrine-bundle"; then
         _pubpst_wait_for_database
 
-        _pubpst_execute "database drop" _pubcst_console doctrine:database:drop --no-interaction --if-exists --force --env="$APP_ENV"
-        _pubpst_execute "database create" _pubcst_console doctrine:database:create --no-interaction --if-not-exists --env="$APP_ENV"
+        _pubpst_execute "database drop" _pubcst_console doctrine:database:drop --no-interaction --if-exists --force --env="${APP_ENV}"
+        _pubpst_execute "database create" _pubcst_console doctrine:database:create --no-interaction --if-not-exists --env="${APP_ENV}"
     fi
 }
 #</editor-fold>
