@@ -274,11 +274,11 @@ function _pubpst_docker_compose_down() {
 function _pubpst_composer_install() {
     local ARGS=()
 
-    ARGS+=("--no-interaction")
+    ARGS+=("--no-interaction" "--no-scripts")
 
     if _pubcst_is_prod; then
-    ARGS+=("--no-dev" "--optimize-autoloader" "--no-scripts")
-fi
+        ARGS+=("--no-dev" "--optimize-autoloader")
+    fi
 
     _pubpst_execute "composer install" _pubcst_composer install "${ARGS[@]}"
 }
