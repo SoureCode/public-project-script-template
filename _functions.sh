@@ -392,10 +392,10 @@ function _pubpst_dump_env() {
 function _pubpst_check_requirements() {
     if _pubcst_is_prod; then
         if _pubcst_composer_has_package "symfony/requirements-checker"; then
-            _pubpst_execute "check requirements" _pubcst_php "${PUBPST_PROJECT_DIRECTORY}/vendor/bin/requirements-checker"
+            _pubpst_execute "check requirements" --print-output _pubcst_php "${PUBPST_PROJECT_DIRECTORY}/vendor/bin/requirements-checker"
         fi
     elif _pubcst_is_dev; then
-        _pubpst_execute "check requirements" _pubcst_symfony check:requirements
+        _pubpst_execute "check requirements" --print-output _pubcst_symfony check:requirements
     fi
 }
 #</editor-fold>
