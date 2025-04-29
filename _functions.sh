@@ -376,4 +376,16 @@ function _pubpst_symfony_database_drop() {
         _pubpst_execute "database create" _pubcst_console doctrine:database:create --no-interaction --if-not-exists --env="${APP_ENV}"
     fi
 }
+
+function _pubpst_dump_env() {
+    if _pubcst_is_prod; then
+        if _pubcst_composer_has_package "symfony/flex"; then
+            local ENV_FILE="${PUBPST_PROJECT_DIRECTORY}/.env.local.php"
+
+            if [ ! -f "$ENV_FILE" ]; then
+                _pubpst_execute "dump env" _pubcst_composer dump-env --no-interaction --no-scripts "${APP_ENV}"
+            fi
+        fi
+    fi
+}
 #</editor-fold>
