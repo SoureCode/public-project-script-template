@@ -42,14 +42,22 @@ function _main() {
     pushd "${PUBPST_PROJECT_DIRECTORY}" >/dev/null 2>&1
 
     _pubcst_print_context
+
+    _pubpst_composer_install
+
+    # stop
     _pubpst_symfony_worker_stop
     _pubpst_sourecode_screen_stop
-    _pubpst_composer_install
+
+    # database
     _pubpst_wait_for_database
+    _pubpst_symfony_migrations_migrate
+
+    # cache and assets
     _pubpst_symfony_cache_clear
     _pubpst_symfony_assets_install
     _pubpst_symfony_import_map_install
-    _pubpst_symfony_migrations_migrate
+
     _pubpst_sourecode_screen_start
 
     popd >/dev/null 2>&1

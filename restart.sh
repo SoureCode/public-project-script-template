@@ -53,22 +53,28 @@ function _main() {
 
     _pubcst_print_context
 
+    _pubpst_composer_install
+
     # stop
     _pubpst_symfony_worker_stop
     _pubpst_sourecode_screen_stop
     _pubpst_docker_compose_down
     _pubpst_symfony_server_stop
 
-    # start
     _pubpst_docker_compose_up
-    _pubpst_composer_install
-    _pubpst_symfony_cache_clear
-    _pubpst_symfony_assets_install
-    _pubpst_symfony_import_map_install
+
+    # database
     _pubpst_wait_for_database
     _pubpst_symfony_migrations_migrate
     _pubpst_symfony_schema_update "$OPTION_NO_SCHEMA_UPDATE"
     _pubpst_symfony_fixtures_load "$OPTION_NO_FIXTURES"
+
+    # cache and assets
+    _pubpst_symfony_cache_clear
+    _pubpst_symfony_assets_install
+    _pubpst_symfony_import_map_install
+
+    # start
     _pubpst_sourecode_screen_start
     _pubpst_symfony_server_start
 

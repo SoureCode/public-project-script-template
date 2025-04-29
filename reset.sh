@@ -55,12 +55,15 @@ function _main() {
     _pubpst_symfony_worker_stop
     _pubpst_sourecode_screen_stop
     _pubpst_symfony_database_drop
-    _pubpst_symfony_cache_clear
-    _pubpst_symfony_assets_install
-    _pubpst_symfony_import_map_install
+
     _pubpst_symfony_migrations_migrate
     _pubpst_symfony_schema_update "$OPTION_NO_SCHEMA_UPDATE"
     _pubpst_symfony_fixtures_load "$OPTION_NO_FIXTURES"
+
+    _pubpst_symfony_cache_clear
+    _pubpst_symfony_assets_install
+    _pubpst_symfony_import_map_install
+
     _pubpst_sourecode_screen_start
 
     popd >/dev/null 2>&1
